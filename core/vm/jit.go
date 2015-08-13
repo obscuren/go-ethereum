@@ -310,8 +310,9 @@ func staticAnalysis(program *Program) {
 					seg.sreq = sreq
 					program.instructions[instrStart].seg = seg
 					fmt.Println("created segment.", seg)
+				} else {
+					seg = nil
 				}
-				seg = nil
 			}
 		}
 	}
