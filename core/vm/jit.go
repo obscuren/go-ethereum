@@ -286,8 +286,7 @@ func staticAnalysis(program *Program) {
 	for i, instr := range program.instructions {
 		if isStatic(instr) {
 			if seg == nil {
-				seg = new(segment)
-				seg.gas = new(big.Int)
+				seg = &segment{gas: new(big.Int)}
 				instrStart = i
 				stack = newstack()
 			}
@@ -305,10 +304,13 @@ func staticAnalysis(program *Program) {
 					seg = nil
 				}
 			} else {
-				seg.items = stack.data
-				seg.pc = uint64(i)
-				seg.sreq = sreq
-				program.instructions[instrStart].seg = seg
+				if i-instrStart > 1 {
+					seg.items = stack.data
+					seg.pc = uint64(i)
+					seg.sreq = sreq
+					program.instructions[instrStart].seg = seg
+					fmt.Println("created segment.", seg)
+				}
 				seg = nil
 			}
 		}
@@ -357,10 +359,6 @@ func runProgram(program *Program, pcstart uint64, mem *Memory, stack *stack, env
 		}
 	)
 
-	defer func() {
-		fmt.Println("done at", pc, ret, err, program.instructions[pc].op)
-	}()
-
 	for pc < uint64(len(program.instructions)) {
 		instr := program.instructions[pc]
 		if instr.seg != nil {
@@ -372,6 +370,7 @@ func runProgram(program *Program, pcstart uint64, mem *Memory, stack *stack, env
 			stack.data = append(stack.data, segment.items...)
 
 			pc = segment.pc
+			fmt.Println("setting pc to", segment)
 			continue
 		}
 
