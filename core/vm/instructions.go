@@ -28,6 +28,15 @@ import (
 type instrFn func(instr instruction, env Environment, context *Context, memory *Memory, stack *stack)
 type instrExFn func(instr instruction, ret *big.Int, env Environment, context *Context, memory *Memory, stack *stack)
 
+type segment struct {
+	pc uint64 // pc end
+
+	sreq int // required stack items
+
+	items []*big.Int // items to push
+	gas   *big.Int   // total gas cost
+}
+
 type instruction struct {
 	op     OpCode
 	pc     uint64
@@ -38,6 +47,8 @@ type instruction struct {
 	gas   *big.Int
 	spop  int
 	spush int
+
+	seg *segment
 }
 
 func opStaticJump(instr instruction, ret *big.Int, env Environment, context *Context, memory *Memory, stack *stack) {
