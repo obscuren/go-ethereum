@@ -500,7 +500,7 @@ func BenchmarkStd1k_1k_32_mir(b *testing.B) {
 	}
 }
 
-func BenchmarkStd1k_2_32_ran(b *testing.B) {
+func BenchmarkStd1k_4_32_ran(b *testing.B) {
 	for j := 0; j < b.N; j++ {
 		var (
 			minCount = 32
@@ -560,7 +560,7 @@ func BenchmarkStd1k_8_32_ran(b *testing.B) {
 	}
 }
 
-func BenchmarkStd1k_32_32_ran(b *testing.B) {
+func BenchmarkStd1k_16_32_ran(b *testing.B) {
 	for j := 0; j < b.N; j++ {
 		var (
 			minCount = 32
