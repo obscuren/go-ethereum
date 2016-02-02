@@ -495,17 +495,17 @@ func BenchmarkStd1k_1k_32_mir(b *testing.B) {
 			key := seed[:minCount+int(seed[31])%(maxCount+1-minCount)]
 
 			trie.Update(key, key)
-			trie.Commit()
 		}
+		trie.Commit()
 	}
 }
 
-func BenchmarkStd1k_4_32_ran(b *testing.B) {
+func BenchmarkStd1k_3_32_ran(b *testing.B) {
 	for j := 0; j < b.N; j++ {
 		var (
 			minCount = 32
 			maxCount = 32
-			eraSize  = 2
+			eraSize  = 3
 			rounds   = 1000
 			trie     = newEmpty()
 			seed     common.Hash
@@ -523,19 +523,19 @@ func BenchmarkStd1k_4_32_ran(b *testing.B) {
 			}
 
 			trie.Update(key, val)
-			if i % eraSize == 0 {
+			if (i + 1) % eraSize == 0 {
 				trie.Commit()
 			}
 		}
 	}
 }
 
-func BenchmarkStd1k_8_32_ran(b *testing.B) {
+func BenchmarkStd1k_5_32_ran(b *testing.B) {
 	for j := 0; j < b.N; j++ {
 		var (
 			minCount = 32
 			maxCount = 32
-			eraSize  = 8
+			eraSize  = 5
 			rounds   = 1000
 			trie     = newEmpty()
 			seed     common.Hash
@@ -553,19 +553,19 @@ func BenchmarkStd1k_8_32_ran(b *testing.B) {
 			}
 
 			trie.Update(key, val)
-			if i % eraSize == 0 {
+			if (i + 1) % eraSize == 0 {
 				trie.Commit()
 			}
 		}
 	}
 }
 
-func BenchmarkStd1k_16_32_ran(b *testing.B) {
+func BenchmarkStd1k_9_32_ran(b *testing.B) {
 	for j := 0; j < b.N; j++ {
 		var (
 			minCount = 32
 			maxCount = 32
-			eraSize  = 32
+			eraSize  = 9
 			rounds   = 1000
 			trie     = newEmpty()
 			seed     common.Hash
@@ -583,7 +583,7 @@ func BenchmarkStd1k_16_32_ran(b *testing.B) {
 			}
 
 			trie.Update(key, val)
-			if i % eraSize == 0 {
+			if (i + 1) % eraSize == 0 {
 				trie.Commit()
 			}
 		}
@@ -595,7 +595,7 @@ func BenchmarkStd1k_1k_32_ran(b *testing.B) {
 		var (
 			minCount = 32
 			maxCount = 32
-			eraSize  = 32
+			eraSize  = 1000
 			rounds   = 1000
 			trie     = newEmpty()
 			seed     common.Hash
@@ -613,7 +613,7 @@ func BenchmarkStd1k_1k_32_ran(b *testing.B) {
 			}
 
 			trie.Update(key, val)
-			if i % eraSize == 0 {
+			if (i + 1) % eraSize == 0 {
 				trie.Commit()
 			}
 		}
