@@ -481,7 +481,7 @@ func deleteString(trie *Trie, k string) {
 	trie.Delete([]byte(k))
 }
 
-func BenchmarkStdMir(b *testing.B) {
+func BenchmarkStd1k_1k_32_mir(b *testing.B) {
 	for j := 0; j < b.N; j++ {
 		var (
 			minCount = 32
@@ -500,7 +500,7 @@ func BenchmarkStdMir(b *testing.B) {
 	}
 }
 
-func Benchmark1k_2_32_ran(b *testing.B) {
+func BenchmarkStd1k_2_32_ran(b *testing.B) {
 	for j := 0; j < b.N; j++ {
 		var (
 			minCount = 32
@@ -530,7 +530,7 @@ func Benchmark1k_2_32_ran(b *testing.B) {
 	}
 }
 
-func Benchmark1k_8_32_ran(b *testing.B) {
+func BenchmarkStd1k_8_32_ran(b *testing.B) {
 	for j := 0; j < b.N; j++ {
 		var (
 			minCount = 32
@@ -560,7 +560,37 @@ func Benchmark1k_8_32_ran(b *testing.B) {
 	}
 }
 
-func Benchmark1k_32_32_ran(b *testing.B) {
+func BenchmarkStd1k_32_32_ran(b *testing.B) {
+	for j := 0; j < b.N; j++ {
+		var (
+			minCount = 32
+			maxCount = 32
+			eraSize  = 32
+			rounds   = 1000
+			trie     = newEmpty()
+			seed     common.Hash
+		)
+		for i := 0; i < rounds; i++ {
+			seed = crypto.Sha3Hash(seed[:])
+			key := seed[:minCount+int(seed[31])%(maxCount+1-minCount)]
+
+			seed = crypto.Sha3Hash(seed[:])
+			var val []byte
+			if int(seed[0])%2 > 0 {
+				val = []byte{seed[31]}
+			} else {
+				val = seed[:]
+			}
+
+			trie.Update(key, val)
+			if i % eraSize == 0 {
+				trie.Commit()
+			}
+		}
+	}
+}
+
+func BenchmarkStd1k_1k_32_ran(b *testing.B) {
 	for j := 0; j < b.N; j++ {
 		var (
 			minCount = 32
