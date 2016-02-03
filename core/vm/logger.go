@@ -61,7 +61,7 @@ func StdErrFormat(logs []StructLog) {
 
 		fmt.Fprintln(os.Stderr, "STORAGE =", len(log.Storage))
 		for h, item := range log.Storage {
-			fmt.Fprintf(os.Stderr, "%x: %x\n", h, common.LeftPadBytes(item, 32))
+			fmt.Fprintf(os.Stderr, "%x: %x\n", h, item, 32)
 		}
 		fmt.Fprintln(os.Stderr)
 	}

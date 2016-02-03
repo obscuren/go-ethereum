@@ -59,7 +59,7 @@ type Environment interface {
 	// Returns all coalesced structured logs
 	StructLogs() []StructLog
 	// Type of the VM
-	Vm() *Vm
+	Vm() Vm
 	// Current calling depth
 	Depth() int
 	SetDepth(i int)
@@ -72,6 +72,10 @@ type Environment interface {
 	DelegateCall(me ContractRef, addr common.Address, data []byte, gas, price *big.Int) ([]byte, error)
 	// Create a new contract
 	Create(me ContractRef, data []byte, gas, price, value *big.Int) ([]byte, common.Address, error)
+}
+
+type Vm interface {
+	Run(*Contract, []byte) ([]byte, error)
 }
 
 // Database is a EVM database for full state querying
@@ -108,7 +112,7 @@ type StructLog struct {
 	GasCost *big.Int
 	Memory  []byte
 	Stack   []*big.Int
-	Storage map[common.Hash][]byte
+	Storage map[common.Hash]common.Hash
 	Err     error
 }
 
@@ -121,6 +125,6 @@ type Account interface {
 	Address() common.Address
 	ReturnGas(*big.Int, *big.Int)
 	SetCode([]byte)
-	EachStorage(cb func(key, value []byte))
+	ForEachStorage(full bool, cb func(key, value common.Hash) bool)
 	Value() *big.Int
 }

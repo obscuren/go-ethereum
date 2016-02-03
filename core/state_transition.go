@@ -137,6 +137,7 @@ func (self *StateTransition) from() (vm.Account, error) {
 	}
 	return self.state.GetAccount(f), nil
 }
+
 func (self *StateTransition) to() vm.Account {
 	if self.msg == nil {
 		return nil
@@ -193,7 +194,6 @@ func (self *StateTransition) preCheck() (err error) {
 	}
 
 	// Make sure this transaction's nonce is correct
-	//if sender.Nonce() != msg.Nonce() {
 	if n := self.state.GetNonce(sender.Address()); n != msg.Nonce() {
 		return NonceError(msg.Nonce(), n)
 	}
@@ -253,7 +253,8 @@ func (self *StateTransition) transitionDb() (ret []byte, usedGas *big.Int, err e
 		err = nil
 	}
 
-	if vm.Debug {
+	logs := vmenv.StructLogs()
+	if len(logs) > 0 {
 		vm.StdErrFormat(vmenv.StructLogs())
 	}
 

@@ -38,7 +38,12 @@ func (self Code) String() string {
 	return string(self) //strings.Join(Disassemble(self), " ")
 }
 
-type Storage map[string]common.Hash
+type storageValue struct {
+	value common.Hash
+	dirty bool
+}
+
+type Storage map[common.Hash]storageValue
 
 func (self Storage) String() (str string) {
 	for key, value := range self {
@@ -112,13 +117,13 @@ func (c *StateObject) getAddr(addr common.Hash) common.Hash {
 	return common.BytesToHash(ret)
 }
 
-func (c *StateObject) setAddr(addr []byte, value common.Hash) {
+func (c *StateObject) setAddr(addr, value common.Hash) {
 	v, err := rlp.EncodeToBytes(bytes.TrimLeft(value[:], "\x00"))
 	if err != nil {
 		// if RLPing failed we better panic and not fail silently. This would be considered a consensus issue
 		panic(err)
 	}
-	c.trie.Update(addr, v)
+	c.trie.Update(addr[:], v)
 }
 
 func (self *StateObject) Storage() Storage {
@@ -126,31 +131,32 @@ func (self *StateObject) Storage() Storage {
 }
 
 func (self *StateObject) GetState(key common.Hash) common.Hash {
-	strkey := key.Str()
-	value, exists := self.storage[strkey]
+	sv, exists := self.storage[key]
 	if !exists {
-		value = self.getAddr(key)
-		if (value != common.Hash{}) {
-			self.storage[strkey] = value
+		sv = storageValue{value: self.getAddr(key)}
+		if (sv.value != common.Hash{}) {
+			self.storage[key] = sv
 		}
 	}
 
-	return value
+	return sv.value
 }
 
 func (self *StateObject) SetState(k, value common.Hash) {
-	self.storage[k.Str()] = value
+	self.storage[k] = storageValue{value: value, dirty: true}
 	self.dirty = true
 }
 
 // Update updates the current cached storage to the trie
 func (self *StateObject) Update() {
-	for key, value := range self.storage {
-		if (value == common.Hash{}) {
-			self.trie.Delete([]byte(key))
-			continue
+	for key, sv := range self.storage {
+		if sv.dirty {
+			if (sv.value == common.Hash{}) {
+				self.trie.Delete(key[:])
+				continue
+			}
+			self.setAddr(key, sv.value)
 		}
-		self.setAddr([]byte(key), value)
 	}
 }
 
@@ -245,10 +251,34 @@ func (self *StateObject) Value() *big.Int {
 	panic("Value on StateObject should never be called")
 }
 
+func (self *StateObject) ForEachStorage(full bool, cb func(key, value common.Hash) bool) {
+	// When iterating over the storage check the cache first
+	for h, sv := range self.storage {
+		if sv.dirty || full {
+			cb(h, sv.value)
+		}
+	}
+
+	// if full storage retrieval is disabled abort here
+	if !full {
+		return
+	}
+
+	it := self.trie.Iterator()
+	for it.Next() {
+		// ignore cached values
+		key := common.BytesToHash(self.trie.GetKey(it.Key))
+		if _, ok := self.storage[key]; !ok {
+			cb(key, common.BytesToHash(it.Value))
+		}
+	}
+}
+
+/*
 func (self *StateObject) EachStorage(cb func(key, value []byte)) {
 	// When iterating over the storage check the cache first
-	for h, v := range self.storage {
-		cb([]byte(h), v.Bytes())
+	for h, sv := range self.storage {
+		cb([]byte(h), sv.value.Bytes())
 	}
 
 	it := self.trie.Iterator()
@@ -260,6 +290,17 @@ func (self *StateObject) EachStorage(cb func(key, value []byte)) {
 		}
 	}
 }
+
+func (self *StateObject) ModifiedStorage(cb func(key, value []byte) bool) {
+	for h, sv := range self.storage {
+		if sv.dirty {
+			if !cb([]byte(h), sv.value.Bytes()) {
+				return
+			}
+		}
+	}
+}
+*/
 
 // Encoding
 
