@@ -979,6 +979,7 @@ func (s *PublicTransactionPoolAPI) GetTransactionReceipt(txHash common.Hash) (ma
 	}
 
 	fields := map[string]interface{}{
+		"root":              common.Bytes2Hex(receipt.PostState),
 		"blockHash":         txBlock,
 		"blockNumber":       rpc.NewHexNumber(blockIndex),
 		"transactionHash":   txHash,
