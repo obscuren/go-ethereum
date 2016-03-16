@@ -113,6 +113,7 @@ type StructLog struct {
 	Memory  []byte
 	Stack   []*big.Int
 	Storage map[common.Hash]common.Hash
+	Depth   int
 	Err     error
 }
 
