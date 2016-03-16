@@ -408,7 +408,7 @@ func (evm *EVM) log(pc uint64, op OpCode, gas, cost *big.Int, memory *Memory, st
 				return true
 			})
 		}
-		evm.env.AddStructLog(StructLog{pc, op, new(big.Int).Set(gas), cost, mem, stck, storage, err})
+		evm.env.AddStructLog(StructLog{pc, op, new(big.Int).Set(gas), cost, mem, stck, storage, evm.env.Depth(), err})
 	}
 }
 
