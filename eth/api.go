@@ -1636,6 +1636,7 @@ type structLogRes struct {
 	Op      string            `json:"op"`
 	Gas     *big.Int          `json:"gas"`
 	GasCost *big.Int          `json:"gasCost"`
+	Depth   int               `json:"depth"`
 	Error   error             `json:"error"`
 	Stack   []string          `json:"stack"`
 	Memory  map[string]string `json:"memory"`
@@ -1669,6 +1670,7 @@ func formatLogs(structLogs []vm.StructLog) []structLogRes {
 			Op:      trace.Op.String(),
 			Gas:     trace.Gas,
 			GasCost: trace.GasCost,
+			Depth:   trace.Depth,
 			Error:   trace.Err,
 			Stack:   make([]string, len(trace.Stack)),
 			Memory:  make(map[string]string),

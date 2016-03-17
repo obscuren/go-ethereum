@@ -152,7 +152,7 @@ func (evm *EVM) Run(contract *Contract, input []byte) (ret []byte, err error) {
 	// User defer pattern to check for an error and, based on the error being nil or not, use all gas and return.
 	defer func() {
 		if err != nil {
-			evm.logger.CaptureState(pc, op, contract.Gas, cost, mem, stack, contract, err)
+			evm.logger.CaptureState(pc, op, contract.Gas, cost, mem, stack, contract, evm.env.Depth(), err)
 		}
 	}()
 
@@ -193,7 +193,7 @@ func (evm *EVM) Run(contract *Contract, input []byte) (ret []byte, err error) {
 		// Resize the memory calculated previously
 		mem.Resize(newMemSize.Uint64())
 		// Add a log message
-		evm.logger.CaptureState(pc, op, contract.Gas, cost, mem, stack, contract, nil)
+		evm.logger.CaptureState(pc, op, contract.Gas, cost, mem, stack, contract, evm.env.Depth(), nil)
 		if opPtr := evm.jumpTable[op]; opPtr.valid {
 			if opPtr.fn != nil {
 				opPtr.fn(instruction{}, &pc, evm.env, contract, mem, stack)

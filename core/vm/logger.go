@@ -54,7 +54,7 @@ type LogCfg struct {
 // VmLogger is a logger interface used by the EVM to emit structured logs.
 type VmLogger interface {
 	// Log logs the given input.
-	CaptureState(pc uint64, op OpCode, gas, cost *big.Int, memory *Memory, stack *stack, contract *Contract, err error)
+	CaptureState(pc uint64, op OpCode, gas, cost *big.Int, memory *Memory, stack *stack, contract *Contract, depth int, err error)
 }
 
 // StructLog is emitted to the Environment each cycle and lists information about the current internal state
@@ -67,6 +67,7 @@ type StructLog struct {
 	Memory  []byte
 	Stack   []*big.Int
 	Storage map[common.Hash]common.Hash
+	Depth   int
 	Err     error
 }
 
@@ -90,7 +91,7 @@ func newLogger(cfg LogCfg, env Environment) *Logger {
 // CaptureState logs a new structured log message and pushes it out to the environment
 //
 // CaptureState also tracks SSTORE ops to track dirty values.
-func (l *Logger) CaptureState(pc uint64, op OpCode, gas, cost *big.Int, memory *Memory, stack *stack, contract *Contract, err error) {
+func (l *Logger) CaptureState(pc uint64, op OpCode, gas, cost *big.Int, memory *Memory, stack *stack, contract *Contract, depth int, err error) {
 	// short circuit if no log collector is present
 	if l.cfg.Collector == nil {
 		return
@@ -133,7 +134,7 @@ func (l *Logger) CaptureState(pc uint64, op OpCode, gas, cost *big.Int, memory *
 		}
 	}
 
-	log := StructLog{pc, op, new(big.Int).Set(gas), cost, mem, stck, storage, err}
+	log := StructLog{pc, op, new(big.Int).Set(gas), cost, mem, stck, storage, depth, err}
 	// Add the log to the collector
 	l.cfg.Collector.AddStructuredLog(log)
 }
@@ -143,7 +144,7 @@ func (l *Logger) CaptureState(pc uint64, op OpCode, gas, cost *big.Int, memory *
 type noopLogger struct{}
 
 // CaptureState comforms to VmLogger but is an noop, logging nothing
-func (noopLogger) CaptureState(pc uint64, op OpCode, gas, cost *big.Int, memory *Memory, stack *stack, contract *Contract, err error) {
+func (noopLogger) CaptureState(pc uint64, op OpCode, gas, cost *big.Int, memory *Memory, stack *stack, contract *Contract, depth int, err error) {
 }
 
 // StdErrFormat formats a slice of StructLogs to human readable format
