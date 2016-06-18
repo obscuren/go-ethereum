@@ -164,6 +164,7 @@ participating.
 		utils.MaxPendingPeersFlag,
 		utils.EtherbaseFlag,
 		utils.GasPriceFlag,
+		utils.IllegalCodeHashesFlag,
 		utils.MinerThreadsFlag,
 		utils.MiningEnabledFlag,
 		utils.MiningGPUFlag,

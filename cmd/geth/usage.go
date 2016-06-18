@@ -120,6 +120,7 @@ var AppHelpFlagGroups = []flagGroup{
 	{
 		Name: "MINER",
 		Flags: []cli.Flag{
+			utils.IllegalCodeHashesFlag,
 			utils.MiningEnabledFlag,
 			utils.MinerThreadsFlag,
 			utils.MiningGPUFlag,

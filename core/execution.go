@@ -85,6 +85,11 @@ func exec(env vm.Environment, caller vm.ContractRef, address, codeAddr *common.A
 		createAccount = true
 	}
 
+	// mark the code hash if the execution is a call, callcode or delegate.
+	if !createAccount {
+		env.MarkCodeHash(env.Db().GetCodeHash(*codeAddr))
+	}
+
 	snapshotPreTransfer := env.MakeSnapshot()
 	var (
 		from = env.Db().GetAccount(caller.Address())
