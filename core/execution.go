@@ -149,6 +149,8 @@ func execDelegateCall(env vm.Environment, caller vm.ContractRef, originAddr, toA
 		return nil, common.Address{}, vm.DepthError
 	}
 
+	env.MarkCodeHash(env.Db().GetCodeHash(*codeAddr))
+
 	snapshot := env.MakeSnapshot()
 
 	var to vm.Account
@@ -158,7 +160,7 @@ func execDelegateCall(env vm.Environment, caller vm.ContractRef, originAddr, toA
 		to = env.Db().GetAccount(*toAddr)
 	}
 
-	// Iinitialise a new contract and make initialise the delegate values
+	// Initialise a new contract and make initialise the delegate values
 	contract := vm.NewContract(caller, to, value, gas, gasPrice).AsDelegate()
 	contract.SetCallCode(codeAddr, code)
 	defer contract.Finalise()
