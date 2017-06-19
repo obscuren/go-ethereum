@@ -100,6 +100,29 @@ func precompiledBenchmark(addr, input, expected string, gas uint64, bench *testi
 
 	})
 }
+func precompiledTest(addr, input, expected string, gas uint64, t *testing.T) {
+
+	contract := NewContract(AccountRef(common.HexToAddress("1337")),
+		nil, new(big.Int), gas)
+	p := PrecompiledContractsMetropolis[common.HexToAddress(addr)]
+	data := common.Hex2Bytes(input)
+	if gas == 0 {
+		contract.Gas = p.RequiredGas(data)
+	}
+
+	t.Run(fmt.Sprintf("Gas=%d", contract.Gas), func(t *testing.T) {
+		res, err := RunPrecompiledContract(p, data, contract)
+		//Check if it is correct
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if common.Bytes2Hex(res) != expected {
+			t.Errorf("Expected %v, got %v", expected, common.Bytes2Hex(res))
+			return
+		}
+	})
+}
 
 func BenchmarkPrecompiledEcdsa(bench *testing.B) {
 	var (
@@ -137,13 +160,14 @@ func BenchmarkPrecompiledIdentity(bench *testing.B) {
 	)
 	precompiledBenchmark(addr, inp, exp, gas, bench)
 }
-func BenchmarkPrecompiledModexp(bench *testing.B) {
-	var (
-		addr = "05"
-	)
-	tests := []struct {
-		input, expected string
-	}{
+
+type testCase struct {
+	input, expected string
+	gas             uint64
+}
+
+func testcasesModexp() []testCase {
+	return []testCase{
 		{input: "0000000000000000000000000000000000000000000000000000000000000001" +
 			"0000000000000000000000000000000000000000000000000000000000000020" +
 			"0000000000000000000000000000000000000000000000000000000000000020" +
@@ -160,56 +184,23 @@ func BenchmarkPrecompiledModexp(bench *testing.B) {
 			expected: "0000000000000000000000000000000000000000000000000000000000000000",
 		},
 	}
-	//Move to another function
-	for _, test := range tests {
-		precompiledBenchmark(addr, test.input, test.expected, 0, bench)
+}
+
+func BenchmarkPrecompiledModexp(bench *testing.B) {
+	var (
+		addr = "05"
+	)
+	for _, test := range testcasesModexp() {
+		precompiledBenchmark(addr, test.input, test.expected, test.gas, bench)
 	}
 }
 
 func TestPrecompiledModexp(t *testing.T) {
 	var (
 		addr = "05"
-		gas  = uint64(4197376)
 	)
-	tests := []struct {
-		input, expected string
-	}{
-		{
-			input: "0000000000000000000000000000000000000000000000000000000000000001" +
-				"0000000000000000000000000000000000000000000000000000000000000020" +
-				"0000000000000000000000000000000000000000000000000000000000000020" +
-				"03" +
-				"fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2e" +
-				"fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f",
-			expected: "0000000000000000000000000000000000000000000000000000000000000001",
-		},
-		{
-			input: "0000000000000000000000000000000000000000000000000000000000000000" +
-				"0000000000000000000000000000000000000000000000000000000000000020" +
-				"0000000000000000000000000000000000000000000000000000000000000020" +
-				"fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2e" +
-				"fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f",
-			expected: "0000000000000000000000000000000000000000000000000000000000000000",
-		},
-	}
-
-	//Move to another function
-	contract := NewContract(AccountRef(common.HexToAddress("1337")),
-		nil, new(big.Int), gas)
-	p := PrecompiledContractsMetropolis[common.HexToAddress(addr)]
-
-	for _, test := range tests {
-		in := common.Hex2Bytes(test.input)
-		reqGas := p.RequiredGas(in)
-		contract.Gas = reqGas
-		t.Run(fmt.Sprintf("RequiredGas=%d", reqGas), func(t *testing.T) {
-			res, err := RunPrecompiledContract(p, in, contract)
-			if err != nil {
-				t.Error(err)
-			} else if common.Bytes2Hex(res) != test.expected {
-				t.Errorf("Expected %v, got %v", test.expected, common.Bytes2Hex(res))
-			}
-		})
+	for _, test := range testcasesModexp() {
+		precompiledTest(addr, test.input, test.expected, test.gas, t)
 	}
 }
 
